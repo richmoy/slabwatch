@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 const API_KEY = import.meta.env.VITE_GOOGLE_SHEETS_API_KEY
 const SHEET_ID = import.meta.env.VITE_SHEET_ID
 const TALLY_URL = import.meta.env.VITE_TALLY_URL
-const FETCH_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/SlabWatch%20Data!A2:I1000?key=${API_KEY}`
+const FETCH_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/SlabWatch!D2:I1000?key=${API_KEY}`
 const REFRESH_INTERVAL = 5 * 60 * 1000
 
 const COMPANIES = [
@@ -14,17 +14,25 @@ const COMPANIES = [
 ]
 
 
+function calcDays(submitted, returned) {
+  if (!submitted || !returned) return null
+  const s = new Date(submitted)
+  const r = new Date(returned)
+  if (isNaN(s) || isNaN(r)) return null
+  return Math.round((r - s) / (1000 * 60 * 60 * 24))
+}
+
 function parseRow(row) {
+  const dateSubmitted = row[2] || ''
+  const dateReturned = row[3] || ''
   return {
-    timestamp: row[0] || '',
-    company: row[1] || '',
-    serviceLevel: row[2] || '',
-    dateSubmitted: row[3] || '',
-    dateReturned: row[4] || '',
-    days: row[5] ? Number(row[5]) : null,
-    cardCount: row[6] || '',
-    submissionMethod: row[7] || '',
-    notes: row[8] || '',
+    company: row[0] || '',
+    serviceLevel: row[1] || '',
+    dateSubmitted,
+    dateReturned,
+    days: calcDays(dateSubmitted, dateReturned),
+    cardCount: row[4] || '',
+    submissionMethod: row[5] || '',
   }
 }
 
