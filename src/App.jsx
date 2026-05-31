@@ -189,7 +189,7 @@ export default function App() {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-navy border-b border-white/[0.06] px-5 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-blue-700 flex-shrink-0" />
+          <img src="/logo.png" alt="SlabWatch" className="w-8 h-8 rounded-lg flex-shrink-0" />
           <div>
             <h1 className="text-sm font-medium tracking-widest">SLABWATCH</h1>
             <p className="text-xs text-[#475569]">Real grading turnaround times, tracked by collectors.</p>
