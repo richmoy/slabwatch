@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 const API_KEY = import.meta.env.VITE_GOOGLE_SHEETS_API_KEY
 const SHEET_ID = import.meta.env.VITE_SHEET_ID
 const TALLY_URL = import.meta.env.VITE_TALLY_URL
+const APPS_SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL
 const FETCH_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/SlabWatch!D2:I1000?key=${API_KEY}`
 const REFRESH_INTERVAL = 5 * 60 * 1000
 
@@ -12,7 +13,6 @@ const COMPANIES = [
   { name: 'SGC', color: '#10b981' },
   { name: 'CGC', color: '#8b5cf6' },
 ]
-
 
 function calcDays(submitted, returned) {
   if (!submitted || !returned) return null
@@ -34,6 +34,30 @@ function parseRow(row) {
     cardCount: row[4] || '',
     submissionMethod: row[5] || '',
   }
+}
+
+function parseCsv(text) {
+  const lines = text.split(/\r?\n/).filter(line => line.trim())
+  const rows = []
+  for (let i = 0; i < lines.length; i++) {
+    const fields = []
+    let current = ''
+    let inQuotes = false
+    for (let j = 0; j < lines[i].length; j++) {
+      const ch = lines[i][j]
+      if (ch === '"') {
+        inQuotes = !inQuotes
+      } else if (ch === ',' && !inQuotes) {
+        fields.push(current.trim())
+        current = ''
+      } else {
+        current += ch
+      }
+    }
+    fields.push(current.trim())
+    rows.push(fields)
+  }
+  return rows
 }
 
 function getCompanyColor(company) {
@@ -59,6 +83,10 @@ export default function App() {
   const [sortColumn, setSortColumn] = useState('dateReturned')
   const [sortDirection, setSortDirection] = useState('desc')
   const [modalOpen, setModalOpen] = useState(false)
+  const [uploadModalOpen, setUploadModalOpen] = useState(false)
+  const [csvRows, setCsvRows] = useState([])
+  const [uploadStatus, setUploadStatus] = useState(null)
+  const [uploading, setUploading] = useState(false)
 
   const fetchData = useCallback(async () => {
     try {
@@ -91,7 +119,12 @@ export default function App() {
   }, [lastFetched])
 
   useEffect(() => {
-    const handleEsc = (e) => { if (e.key === 'Escape') setModalOpen(false) }
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') {
+        setModalOpen(false)
+        setUploadModalOpen(false)
+      }
+    }
     document.addEventListener('keydown', handleEsc)
     return () => document.removeEventListener('keydown', handleEsc)
   }, [])
@@ -138,7 +171,6 @@ export default function App() {
     }
   }, [filtered])
 
-
   const toggleCompany = (name) => {
     setActiveCompanies(prev =>
       prev.includes(name) ? prev.filter(c => c !== name) : [...prev, name]
@@ -165,6 +197,44 @@ export default function App() {
     if (days < stats.avg - threshold) return 'text-green-400'
     if (days > stats.avg + threshold) return 'text-red-400'
     return 'text-white'
+  }
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setUploadStatus(null)
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const allRows = parseCsv(ev.target.result)
+      const isHeader = allRows[0] && allRows[0][0]?.toLowerCase().includes('company')
+      const dataRows = isHeader ? allRows.slice(1) : allRows
+      setCsvRows(dataRows.filter(r => r.length >= 6))
+    }
+    reader.readAsText(file)
+  }
+
+  const handleUpload = async () => {
+    if (!csvRows.length) return
+    setUploading(true)
+    setUploadStatus(null)
+    try {
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ rows: csvRows }),
+      })
+      const json = await res.json()
+      if (json.success) {
+        setUploadStatus({ type: 'success', message: `Uploaded ${json.count} rows successfully.` })
+        setCsvRows([])
+        setTimeout(fetchData, 2000)
+      } else {
+        setUploadStatus({ type: 'error', message: json.error || 'Upload failed.' })
+      }
+    } catch (err) {
+      setUploadStatus({ type: 'error', message: err.message })
+    } finally {
+      setUploading(false)
+    }
   }
 
   const columns = [
@@ -195,12 +265,20 @@ export default function App() {
             <p className="text-xs text-[#475569]">Real grading turnaround times, tracked by collectors.</p>
           </div>
         </div>
-        <button
-          onClick={() => setModalOpen(true)}
-          className="px-4 py-2 text-xs border border-accent bg-accent/10 text-accent rounded-md hover:bg-accent/20 transition-colors"
-        >
-          Submit a return →
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setUploadModalOpen(true)}
+            className="px-3 py-2 text-xs border border-white/20 text-white/60 rounded-md hover:bg-white/5 transition-colors"
+          >
+            Bulk Upload CSV
+          </button>
+          <button
+            onClick={() => setModalOpen(true)}
+            className="px-4 py-2 text-xs border border-accent bg-accent/10 text-accent rounded-md hover:bg-accent/20 transition-colors"
+          >
+            Submit a return →
+          </button>
+        </div>
       </header>
 
       <div className="flex-1 max-w-7xl w-full mx-auto">
@@ -249,7 +327,6 @@ export default function App() {
             ))}
           </select>
         </div>
-
 
         {/* Main content */}
         <div className="px-5 pb-16">
@@ -335,7 +412,7 @@ export default function App() {
       {/* Footer */}
       <footer className="bg-navy border-t border-white/[0.06] px-5 py-3 flex items-center justify-between mt-auto">
         <p className="text-[10px] text-[#475569]">
-          Data submitted by the community. Not affiliated with PSA, BGS, SGC, or CGC. · slabwatch.fyi
+          Data submitted by the community. Not affiliated with PSA, BGS, SGC, or CGC. · slabwatch.tech
         </p>
         {lastFetchedDisplay && (
           <p className="text-[10px] text-[#475569]">Last updated {lastFetchedDisplay}</p>
@@ -370,6 +447,97 @@ export default function App() {
               title="Submit a return"
               className="rounded-lg"
             />
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Upload Modal */}
+      {uploadModalOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => { setUploadModalOpen(false); setCsvRows([]); setUploadStatus(null) }}
+        >
+          <div
+            className="bg-navy-card border border-white/10 rounded-2xl w-full max-w-2xl mx-4 p-6 relative max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => { setUploadModalOpen(false); setCsvRows([]); setUploadStatus(null) }}
+              className="absolute top-4 right-4 text-white/40 hover:text-white text-xl leading-none"
+            >
+              ×
+            </button>
+            <h2 className="text-lg font-medium mb-1">Bulk Upload CSV</h2>
+            <p className="text-xs text-[#475569] mb-4">
+              Upload multiple submissions at once. CSV should have 6 columns:
+              <span className="text-white/60"> Company, Service Level, Date Submitted, Date Returned, Card Count, Method</span>
+            </p>
+
+            <div className="flex items-center gap-3 mb-4">
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleFileChange}
+                className="text-xs text-white/60 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border file:border-white/20 file:bg-transparent file:text-white/60 file:text-xs file:cursor-pointer hover:file:bg-white/5"
+              />
+              <a
+                href="/slabwatch-template.csv"
+                download
+                className="text-xs text-accent hover:underline whitespace-nowrap"
+              >
+                Download template
+              </a>
+            </div>
+
+            {csvRows.length > 0 && (
+              <>
+                <div className="overflow-x-auto mb-4 border border-white/[0.06] rounded-lg">
+                  <table className="w-full text-[11px]">
+                    <thead>
+                      <tr className="border-b border-white/[0.08] bg-navy">
+                        <th className="text-left py-2 px-2 text-[#475569]">Company</th>
+                        <th className="text-left py-2 px-2 text-[#475569]">Service</th>
+                        <th className="text-left py-2 px-2 text-[#475569]">Submitted</th>
+                        <th className="text-left py-2 px-2 text-[#475569]">Returned</th>
+                        <th className="text-left py-2 px-2 text-[#475569]">Cards</th>
+                        <th className="text-left py-2 px-2 text-[#475569]">Method</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {csvRows.slice(0, 20).map((row, i) => (
+                        <tr key={i} className={i % 2 === 0 ? 'bg-navy-light' : 'bg-navy'}>
+                          <td className="py-1.5 px-2 text-white/80">{row[0]}</td>
+                          <td className="py-1.5 px-2 text-white/60">{row[1]}</td>
+                          <td className="py-1.5 px-2 text-white/60">{row[2]}</td>
+                          <td className="py-1.5 px-2 text-white/60">{row[3]}</td>
+                          <td className="py-1.5 px-2 text-white/40">{row[4]}</td>
+                          <td className="py-1.5 px-2 text-white/40">{row[5]}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {csvRows.length > 20 && (
+                    <p className="text-[10px] text-[#475569] px-2 py-1.5">
+                      ...and {csvRows.length - 20} more rows
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  onClick={handleUpload}
+                  disabled={uploading}
+                  className="px-4 py-2 text-xs border border-accent bg-accent/10 text-accent rounded-md hover:bg-accent/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {uploading ? 'Uploading...' : `Upload ${csvRows.length} row${csvRows.length !== 1 ? 's' : ''}`}
+                </button>
+              </>
+            )}
+
+            {uploadStatus && (
+              <p className={`text-xs mt-3 ${uploadStatus.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                {uploadStatus.message}
+              </p>
+            )}
           </div>
         </div>
       )}
