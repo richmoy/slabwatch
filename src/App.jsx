@@ -13,6 +13,7 @@ const COMPANIES = [
   { name: 'CGC', color: '#8b5cf6' },
 ]
 
+
 function parseRow(row) {
   return {
     timestamp: row[0] || '',
@@ -129,6 +130,7 @@ export default function App() {
     }
   }, [filtered])
 
+
   const toggleCompany = (name) => {
     setActiveCompanies(prev =>
       prev.includes(name) ? prev.filter(c => c !== name) : [...prev, name]
@@ -159,19 +161,25 @@ export default function App() {
 
   const columns = [
     { key: 'company', label: 'Company' },
-    { key: 'serviceLevel', label: 'Service Level' },
-    { key: 'dateSubmitted', label: 'Date Submitted' },
-    { key: 'dateReturned', label: 'Date Returned' },
+    { key: 'serviceLevel', label: 'Service' },
+    { key: 'dateSubmitted', label: 'Submitted' },
+    { key: 'dateReturned', label: 'Returned' },
     { key: 'days', label: 'Days' },
-    { key: 'cardCount', label: 'Card Count' },
+    { key: 'cardCount', label: 'Cards' },
     { key: 'submissionMethod', label: 'Method' },
-    { key: 'notes', label: 'Notes' },
+  ]
+
+  const STAT_CARDS = [
+    { value: stats.total, suffix: stats.total === 1 ? ' entry' : ' entries', label: 'Total Submissions', accent: '#3b82f6', valueColor: 'text-white' },
+    { value: stats.avg, suffix: ' days', label: 'Average Turnaround', accent: '#64748b', valueColor: 'text-white' },
+    { value: stats.fastest, suffix: ' days', label: 'Fastest on Record', accent: '#10b981', valueColor: 'text-green-400' },
+    { value: stats.slowest, suffix: ' days', label: 'Slowest on Record', accent: '#ef4444', valueColor: 'text-red-400' },
   ]
 
   return (
-    <div className="min-h-screen bg-navy text-white font-mono">
+    <div className="min-h-screen bg-navy text-white font-mono flex flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-navy border-b border-white/[0.06] px-6 py-4 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-navy border-b border-white/[0.06] px-5 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent to-blue-700 flex-shrink-0" />
           <div>
@@ -187,135 +195,137 @@ export default function App() {
         </button>
       </header>
 
-      {/* Stats bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-6 py-4">
-        {[
-          { value: stats.total, label: 'Total Submissions' },
-          { value: stats.avg, label: 'Average Days' },
-          { value: stats.fastest, label: 'Fastest on Record' },
-          { value: stats.slowest, label: 'Slowest on Record' },
-        ].map(({ value, label }) => (
-          <div key={label} className="bg-navy-light border border-white/[0.06] rounded-lg p-4">
-            <div className="text-2xl font-medium">{loading ? '—' : value}</div>
-            <div className="text-xs text-[#475569] mt-1">{label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Filter bar */}
-      <div className="px-6 py-3 flex flex-wrap items-center gap-3">
-        <div className="flex gap-2">
-          {COMPANIES.map(({ name, color }) => (
-            <button
-              key={name}
-              onClick={() => toggleCompany(name)}
-              className="px-3 py-1.5 text-xs rounded-full border transition-all"
-              style={{
-                borderColor: color,
-                backgroundColor: activeCompanies.includes(name) ? color + '22' : 'transparent',
-                color: activeCompanies.includes(name) ? color : '#475569',
-              }}
+      <div className="flex-1 max-w-7xl w-full mx-auto">
+        {/* Stats bar */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 px-5 py-4">
+          {STAT_CARDS.map(({ value, suffix, label, accent, valueColor }) => (
+            <div
+              key={label}
+              className="bg-navy-light rounded-lg px-4 py-3 border-t-2 border-white/[0.04]"
+              style={{ borderTopColor: accent }}
             >
-              {name}
-            </button>
+              <div className={`text-2xl font-semibold ${valueColor}`}>
+                {loading ? '—' : <>{value}<span className="text-sm font-normal text-white/40">{suffix}</span></>}
+              </div>
+              <div className="text-[10px] uppercase tracking-wider text-[#475569] mt-1">{label}</div>
+            </div>
           ))}
         </div>
-        <select
-          value={serviceFilter}
-          onChange={(e) => setServiceFilter(e.target.value)}
-          className="bg-navy-light border border-white/[0.06] text-sm text-white rounded-md px-3 py-1.5 outline-none focus:border-accent"
-        >
-          {serviceLevels.map(level => (
-            <option key={level} value={level}>{level}</option>
-          ))}
-        </select>
-      </div>
 
-      {/* Main content */}
-      <div className="px-6 pb-20">
-        {loading ? (
-          <div className="text-center py-20 text-[#475569]">Loading submissions...</div>
-        ) : error ? (
-          <div className="text-center py-20 text-red-400">Error loading data: {error}</div>
-        ) : data.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-[#475569] mb-4">No submissions yet. Be the first to contribute.</p>
-            <button
-              onClick={() => setModalOpen(true)}
-              className="px-4 py-2 text-xs border border-accent bg-accent/10 text-accent rounded-md hover:bg-accent/20 transition-colors"
-            >
-              Submit a return →
-            </button>
+        {/* Filter bar */}
+        <div className="px-5 py-2 flex flex-wrap items-center gap-3">
+          <span className="text-[10px] uppercase tracking-wider text-[#475569]">Filter:</span>
+          <div className="flex gap-1.5">
+            {COMPANIES.map(({ name, color }) => (
+              <button
+                key={name}
+                onClick={() => toggleCompany(name)}
+                className="px-2.5 py-1 text-[11px] rounded-full border transition-all"
+                style={{
+                  borderColor: color,
+                  backgroundColor: activeCompanies.includes(name) ? color + '22' : 'transparent',
+                  color: activeCompanies.includes(name) ? color : '#475569',
+                }}
+              >
+                {name}
+              </button>
+            ))}
           </div>
-        ) : sorted.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-[#475569] mb-4">No submissions match your filters.</p>
-            <button
-              onClick={clearFilters}
-              className="px-4 py-2 text-xs border border-white/20 text-white/60 rounded-md hover:bg-white/5 transition-colors"
-            >
-              Clear filters
-            </button>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-white/[0.06]">
-                  {columns.map(({ key, label }) => (
-                    <th
-                      key={key}
-                      onClick={() => handleSort(key)}
-                      className="text-left py-3 px-3 text-[#475569] font-normal cursor-pointer hover:text-white/80 transition-colors whitespace-nowrap select-none"
-                    >
-                      {label}
-                      {sortColumn === key && (
-                        <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
-                      )}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {sorted.map((row, i) => (
-                  <tr
-                    key={i}
-                    className={`border-b border-white/[0.03] hover:bg-white/[0.03] transition-colors ${
-                      i % 2 === 0 ? 'bg-navy-light' : 'bg-navy'
-                    }`}
-                  >
-                    <td className="py-2.5 px-3">
-                      <span
-                        className="px-2 py-0.5 rounded text-[10px] font-medium"
-                        style={{
-                          backgroundColor: getCompanyColor(row.company) + '22',
-                          color: getCompanyColor(row.company),
-                        }}
+          <select
+            value={serviceFilter}
+            onChange={(e) => setServiceFilter(e.target.value)}
+            className="bg-navy-light border border-white/[0.06] text-[11px] text-white rounded-md px-2.5 py-1 outline-none focus:border-accent"
+          >
+            {serviceLevels.map(level => (
+              <option key={level} value={level}>{level}</option>
+            ))}
+          </select>
+        </div>
+
+
+        {/* Main content */}
+        <div className="px-5 pb-16">
+          {loading ? (
+            <div className="text-center py-20 text-[#475569]">Loading submissions...</div>
+          ) : error ? (
+            <div className="text-center py-20 text-red-400">Error loading data: {error}</div>
+          ) : data.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-[#475569] mb-4">No submissions yet. Be the first to contribute.</p>
+              <button
+                onClick={() => setModalOpen(true)}
+                className="px-4 py-2 text-xs border border-accent bg-accent/10 text-accent rounded-md hover:bg-accent/20 transition-colors"
+              >
+                Submit a return →
+              </button>
+            </div>
+          ) : sorted.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-[#475569] mb-4">No submissions match your filters.</p>
+              <button
+                onClick={clearFilters}
+                className="px-4 py-2 text-xs border border-white/20 text-white/60 rounded-md hover:bg-white/5 transition-colors"
+              >
+                Clear filters
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto mt-2">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-white/[0.08]">
+                    {columns.map(({ key, label }) => (
+                      <th
+                        key={key}
+                        onClick={() => handleSort(key)}
+                        className="text-left py-2.5 px-2.5 text-[10px] uppercase tracking-wider text-[#475569] font-medium cursor-pointer hover:text-white/80 transition-colors whitespace-nowrap select-none"
                       >
-                        {row.company}
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3 text-white/80">{row.serviceLevel}</td>
-                    <td className="py-2.5 px-3 text-white/60">{row.dateSubmitted}</td>
-                    <td className="py-2.5 px-3 text-white/60">{row.dateReturned}</td>
-                    <td className={`py-2.5 px-3 font-medium ${getDaysColor(row.days)}`}>
-                      {row.days !== null ? row.days : '—'}
-                    </td>
-                    <td className="py-2.5 px-3 text-white/60">{row.cardCount}</td>
-                    <td className="py-2.5 px-3 text-white/60">{row.submissionMethod}</td>
-                    <td className="py-2.5 px-3 text-white/60" title={row.notes}>
-                      {row.notes.length > 60 ? row.notes.slice(0, 60) + '…' : row.notes}
-                    </td>
+                        {label}
+                        {sortColumn === key && (
+                          <span className="ml-1 text-accent">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {sorted.map((row, i) => (
+                    <tr
+                      key={i}
+                      className={`border-b border-white/[0.03] hover:bg-white/[0.04] transition-colors ${
+                        i % 2 === 0 ? 'bg-navy-light' : 'bg-navy'
+                      }`}
+                    >
+                      <td className="py-2 px-2.5">
+                        <span
+                          className="px-2 py-0.5 rounded text-[10px] font-medium"
+                          style={{
+                            backgroundColor: getCompanyColor(row.company) + '22',
+                            color: getCompanyColor(row.company),
+                          }}
+                        >
+                          {row.company}
+                        </span>
+                      </td>
+                      <td className="py-2 px-2.5 text-white/80">{row.serviceLevel}</td>
+                      <td className="py-2 px-2.5 text-white/60">{row.dateSubmitted}</td>
+                      <td className="py-2 px-2.5 text-white/60">{row.dateReturned}</td>
+                      <td className={`py-2 px-2.5 text-sm font-semibold ${getDaysColor(row.days)}`}>
+                        {row.days !== null ? row.days : '—'}
+                      </td>
+                      <td className="py-2 px-2.5 text-white/40">{row.cardCount}</td>
+                      <td className="py-2 px-2.5 text-white/40">{row.submissionMethod}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 bg-navy border-t border-white/[0.06] px-6 py-3 flex items-center justify-between">
+      <footer className="bg-navy border-t border-white/[0.06] px-5 py-3 flex items-center justify-between mt-auto">
         <p className="text-[10px] text-[#475569]">
           Data submitted by the community. Not affiliated with PSA, BGS, SGC, or CGC. · slabwatch.fyi
         </p>
