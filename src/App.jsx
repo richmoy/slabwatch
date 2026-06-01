@@ -352,7 +352,7 @@ export default function App() {
                     <tr className="border-b-2 border-[#111827]">
                       {[
                         { key: 'serviceLevel', label: 'SERVICE LEVEL', hideOnMobile: false },
-                        { key: 'dateSubmitted', label: 'SUBMITTED', hideOnMobile: false },
+                        { key: 'dateSubmitted', label: 'RECEIVED BY PSA', hideOnMobile: false },
                         { key: 'dateReturned', label: 'SHIPPED BACK', hideOnMobile: false },
                         { key: 'days', label: 'DAYS', align: 'right', hideOnMobile: false },
                         { key: 'cardCount', label: 'CARDS', align: 'right', hideOnMobile: true },
