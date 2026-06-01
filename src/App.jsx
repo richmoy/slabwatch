@@ -247,7 +247,7 @@ export default function App() {
         <div className="flex items-center gap-0">
           <span className="font-mono text-[13px] font-medium tracking-[0.2em] text-[#111827]">SLABWATCH</span>
           <span className="mx-3 inline-block w-px bg-[#e5e7eb]" style={{ height: 14 }} />
-          <span className="font-sans text-[11px] text-[#9ca3af]">Real grading turnaround times, tracked by collectors.</span>
+          <span className="font-sans text-[11px] text-[#9ca3af]">Real PSA grading turnaround times, tracked by collectors.</span>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -300,21 +300,6 @@ export default function App() {
         {/* Filter bar */}
         <div className="flex items-center justify-between border-b border-[#e5e7eb] py-4">
           <div className="flex items-center gap-2">
-            {COMPANIES.map(({ name, activeBg, activeText, activeBorder }) => (
-              <button
-                key={name}
-                onClick={() => toggleCompany(name)}
-                className="font-mono text-[10px] tracking-[0.1em] rounded-[3px] transition-all"
-                style={{
-                  padding: '4px 11px',
-                  background: activeCompanies.includes(name) ? activeBg : 'transparent',
-                  color: activeCompanies.includes(name) ? activeText : '#9ca3af',
-                  border: `1px solid ${activeCompanies.includes(name) ? activeBorder : '#e5e7eb'}`,
-                }}
-              >
-                {name}
-              </button>
-            ))}
             <select
               value={serviceFilter}
               onChange={(e) => setServiceFilter(e.target.value)}
@@ -363,7 +348,6 @@ export default function App() {
                   <thead>
                     <tr className="border-b-2 border-[#111827]">
                       {[
-                        { key: 'company', label: 'COMPANY' },
                         { key: 'serviceLevel', label: 'SERVICE LEVEL' },
                         { key: 'dateSubmitted', label: 'SUBMITTED' },
                         { key: 'dateReturned', label: 'SHIPPED BACK' },
@@ -387,24 +371,9 @@ export default function App() {
                   </thead>
                   <tbody>
                     {sorted.map((row, i) => {
-                      const pill = getCompanyPill(row.company)
                       const daysPill = getDaysPill(row.days)
                       return (
                         <tr key={i} className="border-b border-[#f3f4f6]">
-                          <td style={{ padding: '11px 20px 11px 0' }}>
-                            <span
-                              className="font-mono text-[11px] font-medium inline-block"
-                              style={{
-                                letterSpacing: '0.08em',
-                                background: pill.bg,
-                                color: pill.text,
-                                borderRadius: 2,
-                                padding: '2px 8px',
-                              }}
-                            >
-                              {row.company}
-                            </span>
-                          </td>
                           <td className="font-sans text-[12px] text-[#374151]" style={{ padding: '11px 20px 11px 0' }}>
                             {row.serviceLevel}
                           </td>
