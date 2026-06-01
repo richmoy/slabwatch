@@ -352,7 +352,7 @@ export default function App() {
                     <tr className="border-b-2 border-[#111827]">
                       {[
                         { key: 'serviceLevel', label: 'SERVICE LEVEL', hideOnMobile: false },
-                        { key: 'dateSubmitted', label: 'SUBMITTED', hideOnMobile: true },
+                        { key: 'dateSubmitted', label: 'SUBMITTED', hideOnMobile: false },
                         { key: 'dateReturned', label: 'SHIPPED BACK', hideOnMobile: false },
                         { key: 'days', label: 'DAYS', align: 'right', hideOnMobile: false },
                         { key: 'cardCount', label: 'CARDS', align: 'right', hideOnMobile: true },
@@ -380,7 +380,7 @@ export default function App() {
                           <td className="font-sans text-[12px] text-[#374151]" style={{ padding: '11px 20px 11px 0' }}>
                             {row.serviceLevel}
                           </td>
-                          <td className="hidden md:table-cell font-mono text-[11px] text-[#9ca3af]" style={{ padding: '11px 20px 11px 0' }}>
+                          <td className="font-mono text-[11px] text-[#9ca3af]" style={{ padding: '11px 20px 11px 0' }}>
                             {row.dateSubmitted}
                           </td>
                           <td className="font-mono text-[11px] text-[#6b7280]" style={{ padding: '11px 20px 11px 0' }}>
