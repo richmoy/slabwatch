@@ -240,16 +240,19 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#fafaf9] text-[#111827] font-sans flex flex-col">
       {/* Header */}
-      <header
-        className="sticky top-0 z-50 flex items-center justify-between border-b border-[#e5e7eb]"
-        style={{ height: 60, padding: '0 48px', background: 'rgba(250,250,249,0.95)', backdropFilter: 'blur(12px)' }}
-      >
-        <div className="flex items-center gap-0">
-          <span className="font-mono text-[13px] font-medium tracking-[0.2em] text-[#111827]">SLABWATCH</span>
-          <span className="mx-3 inline-block w-px bg-[#e5e7eb]" style={{ height: 14 }} />
-          <span className="font-sans text-[11px] text-[#9ca3af]">Real PSA grading turnaround times, tracked by collectors.</span>
+      <header className="sticky top-0 z-50 border-b border-[#e5e7eb] px-4 py-3 md:py-0 md:px-[48px] md:h-[60px] md:flex md:items-center md:justify-between" style={{ background: 'rgba(250,250,249,0.95)', backdropFilter: 'blur(12px)' }}>
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-[13px] font-medium tracking-[0.15em] md:tracking-[0.2em] text-[#111827]">SLABWATCH</span>
+          <span className="hidden md:inline-block mx-3 w-px bg-[#e5e7eb]" style={{ height: 14 }} />
+          <span className="hidden md:inline font-sans text-[11px] text-[#9ca3af]">Real PSA grading turnaround times, tracked by collectors.</span>
+          <button
+            onClick={() => setModalOpen(true)}
+            className="md:hidden font-mono text-[9px] tracking-[0.1em] px-[10px] py-[5px] rounded-[3px] bg-[#111827] text-[#fafaf9] border border-[#111827]"
+          >
+            SUBMIT A RETURN →
+          </button>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-2">
           <button
             onClick={() => setUploadModalOpen(true)}
             className="font-mono text-[10.5px] tracking-[0.1em] px-4 py-[7px] rounded-[3px] border border-[#e5e7eb] text-[#6b7280] hover:bg-[#f3f4f6] transition-colors"
@@ -266,19 +269,19 @@ export default function App() {
       </header>
 
       {/* Alert banner */}
-      <div className="border-b border-[#fde68a]" style={{ background: '#fffbeb', padding: '10px 48px' }}>
-        <div className="flex items-center gap-2">
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#d97706] flex-shrink-0" />
-          <p className="font-sans text-[11.5px] text-[#92400e]">
+      <div className="border-b border-[#fde68a] px-4 md:px-[48px] py-[10px]" style={{ background: '#fffbeb' }}>
+        <div className="flex items-start gap-2">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#d97706] flex-shrink-0 mt-[5px]" />
+          <p className="font-sans text-[11px] md:text-[11.5px] text-[#92400e]">
             <strong>PSA Value tier submissions paused as of June 2, 2026.</strong>{' '}
             Regular turnaround revised to 50–60 days. Data below reflects community-reported actuals.
           </p>
         </div>
       </div>
 
-      <div className="flex-1 w-full" style={{ padding: '0 48px' }}>
+      <div className="flex-1 w-full px-4 md:px-[48px]">
         {/* Stats bar */}
-        <div className="grid grid-cols-4 border-b border-[#e5e7eb]" style={{ padding: '28px 0 24px' }}>
+        <div className="grid grid-cols-2 md:grid-cols-4 border-b border-[#e5e7eb]">
           {[
             { value: stats.total, label: 'TOTAL SUBMISSIONS', color: '#111827' },
             { value: stats.avg, label: 'AVERAGE DAYS', color: '#111827' },
@@ -287,10 +290,10 @@ export default function App() {
           ].map(({ value, label, color }, idx) => (
             <div
               key={label}
-              className={idx > 0 ? 'border-l border-[#e5e7eb] pl-8' : ''}
+              className={`py-4 pl-3 md:py-7 md:pl-0 ${idx > 0 ? 'md:border-l md:border-[#e5e7eb] md:pl-8' : ''}`}
             >
-              <div className="font-sans text-[9.5px] tracking-[0.16em] text-[#9ca3af] uppercase mb-2.5">{label}</div>
-              <div className="font-mono text-[38px] font-medium" style={{ color, letterSpacing: '-0.02em' }}>
+              <div className="font-sans text-[8px] md:text-[9.5px] tracking-[0.16em] text-[#9ca3af] uppercase mb-2 md:mb-2.5">{label}</div>
+              <div className="font-mono text-[28px] md:text-[38px] font-medium" style={{ color, letterSpacing: '-0.02em' }}>
                 {loading ? '—' : value}
               </div>
             </div>
@@ -298,7 +301,7 @@ export default function App() {
         </div>
 
         {/* Filter bar */}
-        <div className="flex items-center justify-between border-b border-[#e5e7eb] py-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b border-[#e5e7eb] py-3 md:py-4 gap-2 md:gap-0">
           <div className="flex items-center gap-2">
             <select
               value={serviceFilter}
@@ -311,7 +314,7 @@ export default function App() {
             </select>
           </div>
           {lastFetchedDisplay && (
-            <span className="font-mono text-[9.5px] tracking-[0.08em] text-[#d1d5db]">{lastFetchedDisplay}</span>
+            <span className="hidden md:inline font-mono text-[9.5px] tracking-[0.08em] text-[#d1d5db]">{lastFetchedDisplay}</span>
           )}
         </div>
 
@@ -343,22 +346,22 @@ export default function App() {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
                 <table className="w-full">
                   <thead>
                     <tr className="border-b-2 border-[#111827]">
                       {[
-                        { key: 'serviceLevel', label: 'SERVICE LEVEL' },
-                        { key: 'dateSubmitted', label: 'SUBMITTED' },
-                        { key: 'dateReturned', label: 'SHIPPED BACK' },
-                        { key: 'days', label: 'DAYS', align: 'right' },
-                        { key: 'cardCount', label: 'CARDS', align: 'right' },
-                        { key: 'submissionMethod', label: 'METHOD' },
-                      ].map(({ key, label, align }) => (
+                        { key: 'serviceLevel', label: 'SERVICE LEVEL', hideOnMobile: false },
+                        { key: 'dateSubmitted', label: 'SUBMITTED', hideOnMobile: true },
+                        { key: 'dateReturned', label: 'SHIPPED BACK', hideOnMobile: false },
+                        { key: 'days', label: 'DAYS', align: 'right', hideOnMobile: false },
+                        { key: 'cardCount', label: 'CARDS', align: 'right', hideOnMobile: true },
+                        { key: 'submissionMethod', label: 'METHOD', hideOnMobile: true },
+                      ].map(({ key, label, align, hideOnMobile }) => (
                         <th
                           key={key}
                           onClick={() => handleSort(key)}
-                          className={`font-sans text-[9px] font-semibold tracking-[0.18em] text-[#6b7280] uppercase cursor-pointer hover:text-[#374151] transition-colors whitespace-nowrap select-none ${align === 'right' ? 'text-right' : 'text-left'}`}
+                          className={`font-sans text-[9px] font-semibold tracking-[0.18em] text-[#6b7280] uppercase cursor-pointer hover:text-[#374151] transition-colors whitespace-nowrap select-none ${align === 'right' ? 'text-right' : 'text-left'} ${hideOnMobile ? 'hidden md:table-cell' : ''}`}
                           style={{ padding: '10px 20px 10px 0' }}
                         >
                           {label}
@@ -377,7 +380,7 @@ export default function App() {
                           <td className="font-sans text-[12px] text-[#374151]" style={{ padding: '11px 20px 11px 0' }}>
                             {row.serviceLevel}
                           </td>
-                          <td className="font-mono text-[11px] text-[#9ca3af]" style={{ padding: '11px 20px 11px 0' }}>
+                          <td className="hidden md:table-cell font-mono text-[11px] text-[#9ca3af]" style={{ padding: '11px 20px 11px 0' }}>
                             {row.dateSubmitted}
                           </td>
                           <td className="font-mono text-[11px] text-[#6b7280]" style={{ padding: '11px 20px 11px 0' }}>
@@ -396,10 +399,10 @@ export default function App() {
                               {row.days !== null ? `${row.days}d` : '—'}
                             </span>
                           </td>
-                          <td className="font-mono text-[11px] text-[#9ca3af] text-right" style={{ padding: '11px 20px 11px 0' }}>
+                          <td className="hidden md:table-cell font-mono text-[11px] text-[#9ca3af] text-right" style={{ padding: '11px 20px 11px 0' }}>
                             {row.cardCount}
                           </td>
-                          <td className="font-sans text-[11px] text-[#9ca3af]" style={{ padding: '11px 20px 11px 0' }}>
+                          <td className="hidden md:table-cell font-sans text-[11px] text-[#9ca3af]" style={{ padding: '11px 20px 11px 0' }}>
                             {row.submissionMethod}
                           </td>
                         </tr>
@@ -419,9 +422,9 @@ export default function App() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-[#e5e7eb] flex items-center justify-between" style={{ marginTop: 64, padding: '24px 48px 24px' }}>
+      <footer className="border-t border-[#e5e7eb] flex flex-col md:flex-row items-center justify-between gap-2 px-4 md:px-[48px] mt-16 pt-6 pb-6">
         <span className="font-mono text-[9.5px] tracking-[0.16em] text-[#d1d5db]">SLABWATCH.TECH</span>
-        <span className="font-sans text-[10px] text-[#d1d5db]">Data submitted by the community. Not affiliated with PSA, BGS, SGC, or CGC.</span>
+        <span className="font-sans text-[10px] text-[#d1d5db] text-center md:text-right">Data submitted by the community. Not affiliated with PSA, BGS, SGC, or CGC.</span>
       </footer>
 
       {/* Submit Modal */}
