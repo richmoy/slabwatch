@@ -366,7 +366,7 @@ export default function App() {
                         { key: 'company', label: 'COMPANY' },
                         { key: 'serviceLevel', label: 'SERVICE LEVEL' },
                         { key: 'dateSubmitted', label: 'SUBMITTED' },
-                        { key: 'dateReturned', label: 'RETURNED' },
+                        { key: 'dateReturned', label: 'SHIPPED BACK' },
                         { key: 'days', label: 'DAYS', align: 'right' },
                         { key: 'cardCount', label: 'CARDS', align: 'right' },
                         { key: 'submissionMethod', label: 'METHOD' },
